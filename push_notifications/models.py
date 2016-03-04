@@ -6,14 +6,14 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 from .fields import HexIntegerField
 
-# from consultant.models import ConsultantLogin
+from consultant.models import ConsultantToken
 
 @python_2_unicode_compatible
 class Device(models.Model):
 	name = models.CharField(max_length=255, verbose_name=_("Name"), blank=True, null=True)
 	active = models.BooleanField(verbose_name=_("Is active"), default=True,
 		help_text=_("Inactive devices will not be sent notifications"))
-	user = models.ForeignKey("consultant.ConsultantToken", blank=True, null=True)
+	user = models.ForeignKey(ConsultantToken, blank=True, null=True)
 	date_created = models.DateTimeField(verbose_name=_("Creation date"), auto_now_add=True, null=True)
 
 	class Meta:
@@ -47,8 +47,9 @@ class GCMDevice(Device):
 	# device_id cannot be a reliable primary key as fragmentation between different devices
 	# can make it turn out to be null and such:
 	# http://android-developers.blogspot.co.uk/2011/03/identifying-app-installations.html
-	device_id = HexIntegerField(verbose_name=_("Device ID"), blank=True, null=True, db_index=True,
+	device_id = models.CharField(max_length=60,verbose_name=_("Device ID"), blank=True, null=True, db_index=True,
 		help_text=_("ANDROID_ID / TelephonyManager.getDeviceId() (always as hex)"))
+
 	registration_id = models.TextField(verbose_name=_("Registration ID"))
 
 	objects = GCMDeviceManager()
