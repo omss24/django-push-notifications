@@ -20,3 +20,7 @@ if settings.PUSH_NOTIFICATIONS_DEBUG:
 else:
 	PUSH_NOTIFICATIONS_SETTINGS.setdefault("APNS_HOST", "gateway.push.apple.com")
 	PUSH_NOTIFICATIONS_SETTINGS.setdefault("APNS_FEEDBACK_HOST", "feedback.push.apple.com")
+
+
+# User model
+PUSH_NOTIFICATIONS_SETTINGS.setdefault("USER_MODEL", settings.AUTH_USER_MODEL)

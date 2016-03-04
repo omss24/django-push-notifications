@@ -6,7 +6,7 @@ from tests.mock_responses import GCM_DRF_INVALID_HEX_ERROR, GCM_DRF_OUT_OF_RANGE
 
 class APNSDeviceSerializerTestCase(TestCase):
 	def test_validation(self):
-		# valid data - upper case
+		# valid data - 32 bytes upper case
 		serializer = APNSDeviceSerializer(data={
 			"registration_id": "AEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAE",
 			"name": "Apple iPhone 6+",
@@ -14,9 +14,25 @@ class APNSDeviceSerializerTestCase(TestCase):
 		})
 		self.assertTrue(serializer.is_valid())
 
-		# valid data - lower case
+		# valid data - 32 bytes lower case
 		serializer = APNSDeviceSerializer(data={
 			"registration_id": "aeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeae",
+			"name": "Apple iPhone 6+",
+			"device_id": "ffffffffffffffffffffffffffffffff",
+		})
+		self.assertTrue(serializer.is_valid())
+
+		# valid data - 100 bytes upper case
+		serializer = APNSDeviceSerializer(data={
+			"registration_id": "AEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAEAE",
+			"name": "Apple iPhone 6+",
+			"device_id": "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+		})
+		self.assertTrue(serializer.is_valid())
+
+		# valid data - 100 bytes lower case
+		serializer = APNSDeviceSerializer(data={
+			"registration_id": "aeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeae",
 			"name": "Apple iPhone 6+",
 			"device_id": "ffffffffffffffffffffffffffffffff",
 		})
@@ -87,7 +103,18 @@ class GCMDeviceSerializerTestCase(TestCase):
 		serializer = GCMDeviceSerializer(data={
 			"registration_id": "foobar",
 			"name": "Galaxy Note 3",
-			"device_id": "a54eb38370070a1b",
+			"device_id": "10000000000000000", # 2**64
 		})
 		self.assertFalse(serializer.is_valid())
 		self.assertEqual(serializer.errors, GCM_DRF_OUT_OF_RANGE_ERROR)
+
+	def test_device_id_validation_value_between_signed_unsigned_64b_int_maximums(self):
+		"""
+		2**63 < 0xe87a4e72d634997c < 2**64
+		"""
+		serializer = GCMDeviceSerializer(data={
+			"registration_id": "foobar",
+			"name": "Nexus 5",
+			"device_id": "e87a4e72d634997c",
+		})
+		self.assertTrue(serializer.is_valid())
